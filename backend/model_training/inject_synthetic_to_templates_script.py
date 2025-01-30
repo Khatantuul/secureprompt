@@ -20,12 +20,13 @@ This script is intended for use in the model training and evaluation process onl
 """
 
 import os, random
-from language_templates import templates
-from backend.model_training.synthetic_sample_data_generator import SyntheticDataGenerator
-from eval_templates import eval_templates
+from training_datasets.language_templates import templates
+from synthetic_sample_data_generator import SyntheticDataGenerator
+from evaluation_datasets.eval_templates import eval_templates
 
 synthetic_generator = SyntheticDataGenerator()
 
+print(os.getcwd())
 num_prompts = 100
 
 all_synthetic_data = []
@@ -45,7 +46,8 @@ for i in range(num_prompts):
     all_templates.append(injected_template)
     all_synthetic_data.append((synthetic_api_key, synthetic_password, synthetic_token, synthetic_secret_key))
 
-directory = os.getcwd() + '/model_training/training_datasets'
+directory = os.path.join(os.getcwd(), 'model_training', 'training_datasets')
+os.makedirs(directory, exist_ok=True)
 
 filename = os.path.join(directory, "generated_synthetic_data.py")
 with open(filename, 'w') as fw:
@@ -72,7 +74,10 @@ for i in range(eval_data_num_prompts):
     eval_all_templates.append(eval_injected_template)
     eval_all_synthetic_data.append((random_eval_api_key,eval_password,eval_token,eval_secret_key))
 
-eval_directory = os.getcwd() + '/model_training/evaluation_datasets'
+
+eval_directory = os.path.join(os.getcwd(), 'model_training', 'evaluation_datasets')
+os.makedirs(eval_directory, exist_ok=True)
+
 filename = os.path.join(eval_directory, "eval_generated_synthetic_data.py")
 with open(filename, 'w') as ew:
     ew.write(f"Eval_synthetic_data = {eval_all_synthetic_data}",)
