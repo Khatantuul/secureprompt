@@ -15,15 +15,18 @@ Note:
 - The script relies on the Hugging Face Transformers library for tokenization.
 """
 
+from regex import E
 from torch.utils.data import Dataset
 import string, torch
-from training_datasets.generated_synthetic_data import sensitive_data
+from training_datasets.generated_synthetic_data import synthetic_data
 from training_datasets.injected_templates import injected_templates
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForTokenClassification, Trainer, TrainingArguments
+from evaluation_datasets.eval_generated_synthetic_data import Eval_synthetic_data
+from evaluation_datasets.eval_injected_templates import Eval_injected_templates
 
 
 class TrainingTokenDataset(Dataset):
-    def __init__(self, injected_templates, sensitive_data, tokenizer, max_length=512):
+    def __init__(self, injected_templates, synthetic_data, tokenizer, max_length=512):
         self.encodings = []
         self.labels = []
         
@@ -54,18 +57,18 @@ class TrainingTokenDataset(Dataset):
                 
                 # 2: Finding and labeling sensitive data
                 
-                for sensitive_item in sensitive_data[i]:
-                    sensitive_str = str(sensitive_item)
+                for synthetic_item in synthetic_data[i]:
+                    synthetic_str = str(synthetic_item)
                     # Find all occurrences of sensitive data in the template
                     start_idx = 0
                     while True:
-                        pos = injected_templates[i].find(sensitive_str, start_idx)
+                        pos = injected_templates[i].find(synthetic_str, start_idx)
                         if pos == -1:
                             break
                             
                         # Find which tokens correspond to these character positions
                         char_to_token = encoding.char_to_token(0, pos)
-                        end_pos = pos + len(sensitive_str)
+                        end_pos = pos + len(synthetic_str)
                         end_token = encoding.char_to_token(0, end_pos - 1)
                         
                         if char_to_token is not None and end_token is not None:
@@ -121,25 +124,42 @@ if __name__ == '__main__':
     )
     
     # Validating input data
-    assert len(injected_templates) == len(sensitive_data), \
+    assert len(injected_templates) == len(synthetic_data), \
         "Number of templates must match number of sensitive data items"
     
     # Training dataset
     dataset = TrainingTokenDataset(
         injected_templates=injected_templates,
-        sensitive_data=sensitive_data,
+        synthetic_data=synthetic_data,
         tokenizer=tokenizer
     )
     
-    # Debug: Print token-label alignment for a specific example
-    example_idx = 98  
-    if example_idx < len(dataset):
-        print(f"\nShowing example {example_idx}:")
-        example_item = dataset[example_idx]
-        # for key, value in example_item.items():
-        #     print(f"\n{key}:")
-        #     print(value)
-        
-        print_alignment(dataset, example_idx, tokenizer)
-    else:
-        print(f"Error: Cannot access index {example_idx}, dataset only has {len(dataset)} items")
+    
+    eval_dataset = TrainingTokenDataset(
+        injected_templates=Eval_injected_templates,
+        synthetic_data=Eval_synthetic_data,
+        tokenizer=tokenizer
+    )
+    #Training starts here
+
+    model = AutoModelForTokenClassification.from_pretrained("microsoft/codebert-base", num_labels=2)
+
+    training_args = TrainingArguments(
+        output_dir="./results",
+        num_train_epochs=3,
+        per_device_train_batch_size=4,  
+        eval_strategy="epoch",
+        logging_dir="./logs",
+        save_strategy="epoch",
+        save_total_limit=2,
+        fp16=False, 
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=dataset,
+        eval_dataset=eval_dataset,
+    )
+
+    trainer.train()
