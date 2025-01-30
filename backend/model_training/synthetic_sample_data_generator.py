@@ -31,7 +31,7 @@ from faker import Faker
 import random, base64, uuid, secrets
 import string, datetime, json
 
-class SensitiveDataGenerator:
+class SyntheticDataGenerator:
     def __init__(self):
         self.faker = Faker()
         self.prefixes = [
