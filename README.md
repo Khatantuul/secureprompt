@@ -1,6 +1,9 @@
-# Introducing SecurePrompt
+# SecurePrompt: Protect Your Sensitive Data in AI Conversations
 
 A browser extension that helps prevent accidental exposure of sensitive data when using ChatGPT and DeepSeek . The tool uses a fine-tuned CodeBERT model to detect potential API keys, credentials, and other sensitive information in code snippets before they are submitted.
+
+## Why SecurePrompt?
+In the age of AI-powered tools, developers often share code snippets that may unintentionally contain sensitive information. SecurePrompt acts as a safety net, ensuring your API keys, credentials, and other private data stay secure.
 
 ## Features
 - Real-time detection of sensitive data in code snippets
@@ -9,6 +12,7 @@ A browser extension that helps prevent accidental exposure of sensitive data whe
     - Database credentials
     - Private keys and tokens
     - Environment variables
+    - Passwords
 - Browser extension for seamless integration with ChatGPT and DeepSeek
 - FastAPI backend for real-time analysis
 
