@@ -15,6 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import re, os
 from dotenv import load_dotenv
+import torch
+from transformers import AutoModelForTokenClassification, AutoTokenizer
+
 
 load_dotenv()
 ssl_keyfile = os.getenv("SSL_KEYFILE")
@@ -84,16 +87,59 @@ class SensitivePatternDetector:
 
 scanner = SensitivePatternDetector()
 
+model = AutoModelForTokenClassification.from_pretrained("./results/checkpoint-50")
+tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base", add_prefix_space=True)
+model.eval()
+
+def get_sensitive_parts(text, threshold=0.5):
+    #tokenizing the request text
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+    
+    # getting the model outputs
+    with torch.no_grad():
+        outputs = model(**inputs)
+        predictions = torch.sigmoid(outputs.logits)
+        predictions = predictions.squeeze(0)
+    
+    # getting tokens and their probabilities
+    tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
+    probs = predictions[:, 1].numpy()  
+    
+    # collecting the sensitive parts that make up one sensitive phrase
+    sensitive_parts = []
+    current_sensitive = []
+    current_prob = 0
+    
+    for token, prob in zip(tokens, probs):
+        if token in [tokenizer.cls_token, tokenizer.sep_token, tokenizer.pad_token]:
+            continue
+            
+        if prob > threshold:
+            current_sensitive.append(token)
+            current_prob = max(current_prob, prob)
+        elif current_sensitive:
+            sensitive_parts.append({
+                "text": tokenizer.convert_tokens_to_string(current_sensitive),
+                "confidence": float(current_prob)
+            })
+            current_sensitive = []
+            current_prob = 0
+    
+    # if remaining sensitive parts
+    if current_sensitive:
+        sensitive_parts.append({
+            "text": tokenizer.convert_tokens_to_string(current_sensitive),
+            "confidence": float(current_prob)
+        })
+    
+    return sensitive_parts
+
 @app.post("/scan")
 async def scan_prompt(request: PromptScanRequest):
-    """
-    Catches sensitive data in request body against predefined regex rules
-
-    Returns: 
-        dict: JSON response with status message and detected matches and its length
-    """
     try:
-        caught_patterns = scanner.detect_sensitive_pattern(request.prompt)
+        # catching sensitive patterns
+        caught_patterns = get_sensitive_parts(request.prompt)
+        
         return {
             "status": "success",
             "matches": caught_patterns,
