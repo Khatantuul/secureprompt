@@ -23,10 +23,11 @@ import os, random
 from training_datasets.language_templates import templates
 from synthetic_sample_data_generator import SyntheticDataGenerator
 from evaluation_datasets.eval_templates import eval_templates
+from test_datasets.test_templates import test_templates
 
 synthetic_generator = SyntheticDataGenerator()
 
-print(os.getcwd())
+# print(os.getcwd())
 num_prompts = 100
 
 all_synthetic_data = []
@@ -84,5 +85,35 @@ with open(filename, 'w') as ew:
 filename = os.path.join(eval_directory, "eval_injected_templates.py")
 with open(filename, 'w') as ew:
     ew.write(f"Eval_injected_templates = {eval_all_templates}",)
+
+
+test_all_synthetic_data = []
+test_all_templates = []
+test_data_num_prompts = 20 
+
+for i in range(test_data_num_prompts):
+    test_language = random.choice(list(test_templates.keys()))
+    test_template = test_templates[test_language]
+
+    test_api_keys = synthetic_generator.run_all_api_methods()
+    random_test_api_key = random.choice(test_api_keys)
+    test_password = synthetic_generator.generate_password()
+    test_token = synthetic_generator.generate_jwt_like()
+    test_secret_key = synthetic_generator.generate_base64_key()
+
+    test_injected_template = test_template.format(API_KEY=random_test_api_key, PASSWORD=test_password, TOKEN=test_token, SECRET_KEY=test_secret_key)
+    test_all_templates.append(test_injected_template)
+    test_all_synthetic_data.append((random_test_api_key,test_password,test_token,test_secret_key))
+
+
+test_directory = os.path.join(os.getcwd(), 'model_training', 'test_datasets')
+os.makedirs(test_directory, exist_ok=True)
+
+filename = os.path.join(test_directory, "test_generated_synthetic_data.py")
+with open(filename, 'w') as tw:
+    tw.write(f"test_synthetic_data = {test_all_synthetic_data}",)
+filename = os.path.join(test_directory, "test_injected_templates.py")
+with open(filename, 'w') as tw:
+    tw.write(f"test_injected_templates = {test_all_templates}",)
 
 
