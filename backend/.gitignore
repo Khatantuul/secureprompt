@@ -4,6 +4,13 @@ __pycache__/
 
 # Ignore virtual environment
 venv/
+.env
 
 # Ignore logs and temp files
 *.log
+
+#Datasets
+evaluation_datasets
+test_datasets
+training_datasets
+/results
