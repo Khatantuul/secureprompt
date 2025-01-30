@@ -15,7 +15,7 @@
   "content_scripts": [
     {
       "matches": ["https://chatgpt.com/*", "https://chat.deepseek.com/*"],
-      "js": ["scripts/content.js", "scripts/deepseek.js" ]
+      "js": ["scripts/chatgpt.js", "scripts/deepseek.js" ]
     }
   ],
   "web_accessible_resources": [{

@@ -175,7 +175,7 @@ function addCleanseButton(
         patterns.forEach((pattern) => {
           detected = pattern.text;
           confidence = pattern.confidence;
-          replacedText = (confidence > 0.7) ? replacedText.replace(detected, "*****") : replacedText;
+          replacedText = (confidence > 0.9) ? replacedText.replace(detected, "*****") : replacedText;
         });
         node.textContent = replacedText;
         processedNodes.add(node); 

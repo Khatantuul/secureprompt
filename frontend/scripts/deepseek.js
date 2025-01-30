@@ -117,7 +117,7 @@ const loadDeepseek = async () => {
             let modifiedLine = line;
             patterns.forEach(pattern => {
                 
-                modifiedLine = (pattern.confidence > 0.7) ? modifiedLine.replace(pattern.text, "*****") : modifiedLine;
+                modifiedLine = (pattern.confidence > 0.9) ? modifiedLine.replace(pattern.text, "*****") : modifiedLine;
             });
             return modifiedLine;
         })
