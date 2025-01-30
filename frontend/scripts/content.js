@@ -24,7 +24,7 @@ const loadPatterns = async () => {
                 if (
                   node.nodeName === "P" &&
                   !processedNodes.has(node) &&
-                  !node.textContent.includes("******************")
+                  !node.textContent.includes("*****")
                 ) {
                   sensitiveNodes.push({ node, text: node.textContent });
                 }
@@ -173,7 +173,9 @@ function addCleanseButton(
       sensitiveNodes.forEach(({ node, text }) => {
         let replacedText = text;
         patterns.forEach((pattern) => {
-          replacedText = replacedText.replace(pattern, "******************");
+          detected = pattern.text;
+          confidence = pattern.confidence;
+          replacedText = (confidence > 0.7) ? replacedText.replace(detected, "*****") : replacedText;
         });
         node.textContent = replacedText;
         processedNodes.add(node); 
@@ -195,7 +197,7 @@ function addCleanseButton(
       inputContainer.parentElement.appendChild(message);
       button.remove();
 
-      setTimeout(() => message.remove(), 6000);
+      setTimeout(() => message.remove(), 7000);
     
     });
   }
