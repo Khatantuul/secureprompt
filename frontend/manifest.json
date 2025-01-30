@@ -9,17 +9,18 @@
   ],
   "host_permissions": [
     "https://chatgpt.com/*",
+    "https://chat.deepseek.com/*",
     "https://127.0.0.1:8000/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/*"],
-      "js": ["scripts/content.js"]
+      "matches": ["https://chatgpt.com/*", "https://chat.deepseek.com/*"],
+      "js": ["scripts/content.js", "scripts/deepseek.js" ]
     }
   ],
   "web_accessible_resources": [{
     "resources": ["scripts/patterns.js"],
-    "matches": ["https://chatgpt.com/*"]
+    "matches": ["https://chatgpt.com/*", "https://chat.deepseek.com/*"]
   }],
   "icons": {
     "16": "icons/icon16.png",

@@ -4,7 +4,7 @@
  */
 const loadPatterns = async () => {
 
-  //Initial platform check only for chatgpt.com for now
+  //Initial platform check only for chatgpt.com 
   if (window.location.hostname === "chatgpt.com") {
     const checkForInput = setInterval(() => {
       const inputContainer = document.querySelector("#prompt-textarea");
